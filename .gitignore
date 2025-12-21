@@ -1,3 +1,7 @@
 database/data/*
 *.env
 .idea/*
+feeder/logs/*
+feeder/utility/__pycache__/*
+feeder/repository/__pycache__/*
+feeder/service/__pycache__/*
