@@ -25,7 +25,8 @@ class Gather:
             DuckDB.save_data(table_name='ticker', data=tickers)
             ticker_symbols = cls.__extract_ticker_symbols(tickers)
             trade_date_range = Commons.generate_date_range(start_date, end_date)
-            batches = Commons.split_array_into_batches(trade_date_range, batch_size=10)
+            batch_size = cls.__configuration['gather']['persistence-batch-size']
+            batches = Commons.split_array_into_batches(trade_date_range, batch_size=batch_size)
             for batch in batches:
                 cls.__gather_ticker_overview_by_trade_date_batches(ticker_symbols=ticker_symbols, trade_dates=batch)
                 cls.__gather_price_data_by_trade_date_batches(ticker_symbols=ticker_symbols, trade_dates=batch)

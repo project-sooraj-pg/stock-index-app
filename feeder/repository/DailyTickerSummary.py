@@ -19,7 +19,8 @@ class DailyTickerSummary:
         all_results = list()
         cls.__logger.info(f'requesting price data of multiple tickers. number of tickers: {len(ticker_symbols)}')
         filters = cls.__configuration['gather']['data-source']['tickers']['filters']
-        batches = Commons.split_array_into_batches(ticker_symbols, batch_size=300)
+        batch_size = cls.__configuration['gather']['data-source']['tickers']['async-api-call-batch-size']
+        batches = Commons.split_array_into_batches(ticker_symbols, batch_size=batch_size)
         for batch in batches:
             results = asyncio.run(cls.__fetch_price_data_by_trade_date(ticker_symbols=batch, trade_date=trade_date, filters=filters))
             all_results.extend(results)

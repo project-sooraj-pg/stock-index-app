@@ -40,6 +40,7 @@ class Tickers:
         cls.__logger.info('fetching all tickers overview from source (polygon.io)')
         ticker_overviews = list()
         data_date = filters.get('date', date.today().strftime('%Y-%m-%d'))
+        batch_size = cls.__configuration['gather']['data-source']['tickers']['async-api-call-batch-size']
         batches = Commons.split_array_into_batches(ticker_symbols, batch_size=300)
         for batch in batches:
             results = asyncio.run(cls.__fetch_batch_ticker_overview(batch, filters))

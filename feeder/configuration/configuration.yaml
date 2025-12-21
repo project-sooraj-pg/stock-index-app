@@ -4,6 +4,7 @@ local:
   # configurations about gathering data
   gather:
     start_date: '2025-12-15'
+    persistence-batch-size: 10
     end_date: null
     data-source:
       tickers:
@@ -19,7 +20,9 @@ local:
       ticker-overview:
         url: https://api.massive.com/v3/reference/tickers
         filters: null
+        async-api-call-batch-size: 300
       daily-ticker-summary:
+        async-api-call-batch-size: 300
         url: https://api.massive.com/v1/open-close
         filters:
           adjusted: true
