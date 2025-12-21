@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from feeder.repository.Tickers import Tickers
 from feeder.repository.DailyTickerSummary import DailyTickerSummary
@@ -34,7 +34,7 @@ class Gather:
             cls.__logger.exception(exception)
 
     @classmethod
-    def __gather_ticker_overview_by_trade_date_batches(cls, ticker_symbols: List[str], trade_dates: List[str]):
+    def __gather_ticker_overview_by_trade_date_batches(cls, ticker_symbols: List[str], trade_dates: List[str]) -> None:
         """Method to gather ticker overview data during a batch of trade dates"""
         try:
             results = list()
@@ -46,7 +46,7 @@ class Gather:
             cls.__logger.exception(exception)
 
     @classmethod
-    def __gather_price_data_by_trade_date_batches(cls, ticker_symbols: List[str], trade_dates: List[str]):
+    def __gather_price_data_by_trade_date_batches(cls, ticker_symbols: List[str], trade_dates: List[str]) -> None:
         """Method to gather price data during a batch of trade dates"""
         try:
             results = list()
@@ -58,7 +58,7 @@ class Gather:
             cls.__logger.exception(exception)
 
     @classmethod
-    def __extract_ticker_symbols(cls, tickers: List[dict]) -> List[str]:
+    def __extract_ticker_symbols(cls, tickers: List[dict]) -> List[Optional[str]]:
         """Method to extract ticker symbols from ticker objects"""
         cls.__logger.info('extracting ticker symbols from ticker data')
         ticker_symbols = set()
