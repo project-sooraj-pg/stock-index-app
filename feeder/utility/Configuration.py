@@ -10,7 +10,7 @@ class Configuration:
     def load_from_file(cls):
         if cls.__configuration:
             return cls.__configuration
-        with open('feeder/configuration/configuration.yaml', 'r') as file:
+        with open('configuration/configuration.yaml', 'r') as file:
             configuration = yaml.safe_load(file)
         cls.__logger.info('starting application....')
         cls.__logger.info(f"active environment: {configuration['active']}")

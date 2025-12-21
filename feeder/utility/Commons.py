@@ -6,7 +6,7 @@ from feeder.utility.Logger import Logger
 class Commons:
 
     __logger = Logger.get_logger()
-    __apiKey = 'api-key'
+    __apiKey = 'apikey'
 
     @classmethod
     def build_params(cls, filters: dict = None) -> dict:
@@ -33,3 +33,15 @@ class Commons:
             current += timedelta(days=1)
         cls.__logger.info(f'date range built. number of dates: {len(date_range)}')
         return date_range
+
+    @classmethod
+    def split_array_into_batches(cls, array, batch_size):
+        """Method to split a given array in to batches"""
+        if len(array) < batch_size:
+            return [array]
+        batches = list()
+        while len(array) > batch_size:
+            batches.append(array[:batch_size])
+            array = array[batch_size:]
+        batches.append(array)
+        return batches

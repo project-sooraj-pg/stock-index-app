@@ -1,6 +1,10 @@
+import ssl
 from typing import Optional
 
 import json
+
+import aiohttp
+import certifi
 import requests
 
 from feeder.utility.Logger import Logger
@@ -8,6 +12,7 @@ from feeder.utility.Logger import Logger
 class Web:
 
     __logger = Logger.get_logger()
+    __ssl_context = ssl.create_default_context(cafile=certifi.where())
 
     @classmethod
     def request(cls, method: str, url: str, headers: Optional[dict], params:dict, body: Optional[dict]) -> dict:
@@ -19,3 +24,12 @@ class Web:
         except Exception as exception:
             cls.__logger.exception(exception)
         return response_data
+
+    @classmethod
+    async def request_asynchronous(cls, method: str, url: str, headers: Optional[dict], params:dict, body: Optional[dict]):
+        """Method to make asynchronous HTTP request"""
+        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=cls.__ssl_context)) as session:
+            cls.__logger.info(f'making asynchronous {method} request to_url: {url}')
+            async with session.request(method=method, url=url, headers=headers, data=body, params=params) as response:
+                return await response.text()
+

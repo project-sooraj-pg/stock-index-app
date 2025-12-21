@@ -34,8 +34,10 @@ class DuckDB:
     @classmethod
     def wipe_existing_data(cls):
         """Method to wipe data associated with duckdb"""
+        directory_items = [* os.listdir('data/duckdb/database')]
+        directory_items.extend(os.listdir('data/duckdb/json'))
         try:
-            for item in os.listdir('data/duckdb'):
+            for item in directory_items:
                 item_path = os.path.join('data/duckdb', item)
                 if os.path.isfile(item_path) or os.path.islink(item_path):
                     os.remove(item_path)
@@ -66,11 +68,15 @@ class DuckDB:
             connection = cls.__get_connection()
             try:
                 cls.__logger.info(f'storing given data in duckdb table: {table_name}')
-                connection.execute(f"CREATE OR REPLACE TABLE {table_name} AS SELECT * FROM read_json_auto(?)", [json_file_path])
+                table_exists = connection.execute("SELECT COUNT(*) FROM information_schema.tables WHERE table_name = ?",[table_name]).fetchone()[0] > 0
+                if table_exists:
+                    cls.__logger.info(f"table: {table_name} doesn't exist. creating table and inserting data")
+                    connection.execute(f"INSERT INTO {table_name} SELECT * FROM read_json_auto(?)", [json_file_path])
+                else:
+                    connection.execute(f"CREATE TABLE {table_name} AS SELECT * FROM read_json_auto(?)", [json_file_path])
                 cls.__logger.info('stored successfully')
             except Exception as exception:
                 cls.__logger.exception(exception)
-
         else:
             cls.__logger.error('unable to find relevant json file to persist into duckdb')
 

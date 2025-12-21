@@ -9,11 +9,12 @@ class Logger:
     @classmethod
     def __initialize_logger(cls):
         cls.__logger = logging.getLogger('feeder')
-        formatter = logging.Formatter('[%(asctime)s] [%(process)-5s] [%(threadName)-10s] [%(levelname)-5s] %(message)s')
-        os.makedirs('logs', exist_ok=True)
-        handler = TimedRotatingFileHandler(filename='logs/feeder.log', when='midnight',  interval=1, backupCount=30)
-        handler.setFormatter(formatter)
-        cls.__logger.addHandler(handler)
+        if not cls.__logger.handlers:
+            formatter = logging.Formatter('[%(asctime)s] [%(process)-5s] [%(threadName)-10s] [%(levelname)-5s] %(message)s')
+            os.makedirs('logs', exist_ok=True)
+            handler = TimedRotatingFileHandler(filename='logs/feeder.log', when='midnight',  interval=1, backupCount=30)
+            handler.setFormatter(formatter)
+            cls.__logger.addHandler(handler)
         cls.__logger.setLevel(logging.INFO)
 
     @classmethod

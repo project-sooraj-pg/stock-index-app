@@ -1,4 +1,5 @@
-import time
+import json
+import asyncio
 from datetime import  date
 from typing import List, Optional
 
@@ -9,7 +10,6 @@ from feeder.utility.Configuration import Configuration
 
 class Tickers:
 
-    __tickers = list()
     __logger = Logger.get_logger()
     __configuration = Configuration.load_from_file()
     __tickers_init_url = __configuration['gather']['data-source']['tickers']['url']
@@ -18,23 +18,10 @@ class Tickers:
     @classmethod
     def get_tickers(cls) -> List[dict]:
         """Method to get list of tickers from polygon.io"""
-        if not cls.__tickers:
-            filters = cls.__configuration['gather']['data-source']['tickers']['filters']
-            cls.__logger.info('loading all tickers from cache')
-            cls.__tickers.extend(cls.__fetch_tickers(filters=filters))
-        cls.__logger.info(f'number of available tickers: {len(cls.__tickers)}')
-        return cls.__tickers
-
-    @classmethod
-    def get_ticker_overview_in_a_range(cls, ticker_symbols: List[str], start_date: str, end_date: str) -> List[dict]:
-        """method to get list of ticker overviews  within a given date range from polygon.io """
-        results = list()
-        cls.__logger.info('obtaining tickers overview details in a given date range')
-        overview_date_range = Commons.generate_date_range(start_date, end_date)
-        for overview_date in overview_date_range:
-            result = cls.get_ticker_overview_in_a_given_date(ticker_symbols, overview_date)
-            results.extend(result)
-        return results
+        filters = cls.__configuration['gather']['data-source']['tickers']['filters']
+        tickers = cls.__fetch_tickers(filters=filters)
+        cls.__logger.info(f'number of available tickers: {len(tickers)}')
+        return tickers
 
     @classmethod
     def get_ticker_overview_in_a_given_date(cls, ticker_symbols: List[str], overview_date: str) -> List[dict]:
@@ -48,34 +35,43 @@ class Tickers:
         return results
 
     @classmethod
-    def __fetch_ticker_overviews(cls, ticker_symbols:List[str], filters: dict = None) -> List[dict]:
+    def __fetch_ticker_overviews(cls, ticker_symbols:List[str], filters: dict = None) -> List[Optional[dict]]:
         """Method to fetch ticker overviews api from polygon.io"""
         cls.__logger.info('fetching all tickers overview from source (polygon.io)')
-        results = list()
+        ticker_overviews = list()
         data_date = filters.get('date', date.today().strftime('%Y-%m-%d'))
-        for ticker_symbol in ticker_symbols:
-            result = cls.__fetch_one_ticker_overview(ticker_symbol=ticker_symbol, filters=filters)
-            time.sleep(15)
-            if result:
-                result.update({'data_date': data_date})
-                results.append(result)
+        batches = Commons.split_array_into_batches(ticker_symbols, batch_size=300)
+        for batch in batches:
+            results = asyncio.run(cls.__fetch_batch_ticker_overview(batch, filters))
+            for result in results:
+                if result:
+                    result.update({'data_date': data_date})
+            ticker_overviews.extend(results)
+        return ticker_overviews
+
+    @classmethod
+    async def __fetch_batch_ticker_overview(cls, ticker_symbols: List[str], filters: dict) -> List[dict]:
+        """Method to submit asynchronous function calls"""
+        tasks = [cls.__fetch_one_ticker_overview(ticker_symbol, filters) for ticker_symbol in ticker_symbols]
+        results = await asyncio.gather(*tasks)
         return results
 
     @classmethod
-    def __fetch_one_ticker_overview(cls, ticker_symbol:str, filters:dict = None) -> Optional[dict]:
+    async def __fetch_one_ticker_overview(cls, ticker_symbol:str, filters:dict = None) -> Optional[dict]:
         """Method to fetch overview of a single ticker from polygon.io"""
         cls.__logger.info(f'fetching tickers overview of {ticker_symbol} from source (polygon.io)')
         result = None
         url = f'{cls.__tickers_overview_init_url}/{ticker_symbol}'
         params = Commons.build_params(filters=filters)
         try:
-             response = Web.request(
+             response = await Web.request_asynchronous(
                  method='GET',
                  url=url,
                  headers=None,
                  params=params,
                  body=None
              )
+             response = json.loads(response)
              result = response.get('results', None)
         except Exception as exception:
             cls.__logger.exception(exception)
@@ -105,7 +101,6 @@ class Tickers:
                 if 'next_url' in response.keys():
                     call_count += 1
                     url = response['next_url']
-                    time.sleep(15)
                 else:
                     cls.__logger.info('next url not found. exiting sequential api call')
                     url = None
