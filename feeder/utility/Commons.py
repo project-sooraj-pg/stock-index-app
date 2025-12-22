@@ -12,7 +12,6 @@ class Commons:
     @classmethod
     def build_params(cls, filters: dict = None) -> dict:
         """Method to build common request params required for polygon api"""
-        cls.__logger.info('building query parameters for tickers polygon api')
         params = {'apiKey': cls.__apiKey}
         if filters:
             params.update(filters)

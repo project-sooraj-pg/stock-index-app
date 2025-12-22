@@ -29,7 +29,6 @@ class Web:
     async def request_asynchronous(cls, method: str, url: str, headers: Optional[dict], params:dict, body: Optional[dict]):
         """Method to make asynchronous HTTP request"""
         async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=cls.__ssl_context)) as session:
-            cls.__logger.info(f'making asynchronous {method} request to_url: {url}')
             async with session.request(method=method, url=url, headers=headers, data=body, params=params) as response:
                 return await response.text()
 

@@ -22,6 +22,7 @@ class DailyTickerSummary:
         batch_size = cls.__configuration['gather']['data-source']['daily-ticker-summary']['async-api-call-batch-size']
         batches = Commons.split_array_into_batches(ticker_symbols, batch_size=batch_size)
         for batch in batches:
+            cls.__logger.info(f"processing ticker symbol batch of size: {len(batch)}")
             results = asyncio.run(cls.__fetch_price_data_by_trade_date(ticker_symbols=batch, trade_date=trade_date, filters=filters))
             for result in results:
                 if result:

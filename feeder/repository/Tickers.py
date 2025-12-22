@@ -43,6 +43,7 @@ class Tickers:
         batch_size = cls.__configuration['gather']['data-source']['ticker-overview']['async-api-call-batch-size']
         batches = Commons.split_array_into_batches(ticker_symbols, batch_size=batch_size)
         for batch in batches:
+            cls.__logger.info(f"processing ticker symbol batch of size: {len(batch)}")
             results = asyncio.run(cls.__fetch_batch_ticker_overview(batch, filters))
             for result in results:
                 if result:
@@ -60,7 +61,6 @@ class Tickers:
     @classmethod
     async def __fetch_one_ticker_overview(cls, ticker_symbol:str, filters:dict = None) -> Optional[dict]:
         """Method to fetch overview of a single ticker from polygon.io"""
-        cls.__logger.info(f'fetching tickers overview of {ticker_symbol} from source (polygon.io)')
         result = None
         url = f'{cls.__tickers_overview_init_url}/{ticker_symbol}'
         params = Commons.build_params(filters=filters)
