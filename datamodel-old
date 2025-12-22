@@ -1,0 +1,282 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+Table country {
+  country_code varchar(4) [primary key]
+  country_name varchar(64)
+  created_at timestamptz
+  created_by varchar(64)
+  updated_at timestamptz
+  updated_by varchar(64)
+
+}
+
+Table company {
+  company_id integer [primary key]
+  company_name varchar(128) [not null]
+  company_description varchar(1024)
+  country_code varchar(8) [not null]
+  website varhcar(128)
+  created_at timestamptz
+  created_by varchar(64)
+  updated_at timestamptz
+  updated_by varchar(64)
+}
+
+Table company_daily_financials {
+  company_id integer [primary key]
+  trade_date date [not null]
+}
+
+Table company_shares_outstanding {
+  company_shares_outstanding_id integer [primary key]
+  company_id integer [not null]
+  total_shares_outstanding bigint [not null]
+  effective_from date [not null]
+  created_at timestamptz
+  created_by varchar(64)
+  updated_at timestamptz
+  updated_by varchar(64)
+
+  indexes {
+    (company_id, effective_from) [unique]
+  }
+
+  checks {
+    `total_shares_outstanding > 0` [name: 'enforce_positive_total_shares_outstanding']
+  }
+}
+
+Table exchange {
+  exchange_id integer [primary key]
+  exchange_code varchar(8) [not null]
+  exchange_name varchar(128) [not null]
+  exchange_description varchar(1024)
+  created_at timestamptz
+  created_by varchar(64)
+  updated_at timestamptz
+  updated_by varchar(64)
+}
+
+Table listing_status {
+  listing_status_id smallint [primary key]
+  listing_status varchar(8) [not null]
+  created_at timestamptz
+  created_by varchar(64)
+  updated_at timestamptz
+  updated_by varchar(64)
+}
+
+Table listing {
+  listing_id integer [primary key]
+  company_id integer [not null]
+  exchange_id integer [not null]
+  ticker_symbol varchar(8) [not null]
+  listing_status_id smallint [not null]
+  created_at timestamptz
+  created_by varchar(64)
+  updated_at timestamptz
+  updated_by varchar(64)
+
+  indexes {
+    (company_id)
+    (ticker_symbol, exchange_id) [unique]
+  }
+}
+
+Table listing_daily_performance {
+  listing_id integer [not null]
+  trade_date date [not null]
+  open_price numeric(12, 4)
+  high_price numeric(12, 4)
+  low_price numeric(12, 4)
+  close_price numeric(12, 4)
+  trade_volume bigint
+  created_at timestamptz
+  created_by varchar(64)
+  updated_at timestamptz
+  updated_by varchar(64)
+
+  indexes {
+    (listing_id, trade_date) [pk]
+  }
+
+  checks {
+    `open_price >= 0` [name: 'enforce_non_negative_open_price']
+    `high_price >= 0` [name: 'enforce_non_negative_high_price']
+    `low_price >= 0` [name: 'enforce_non_negative_low_price']
+    `close_price >= 0` [name: 'enforce_non_negative_close_price']
+    `high_price >= low_price` [name: 'enforce_high_price_not_less_than_low_price']
+    `open_price BETWEEN low_price AND high_price` [name: 'enforce_valid_open_price']
+    `close_price BETWEEN low_price AND high_price` [name: 'enforce_valid_close_price']
+    `trade_volume >= 0` [name: 'enforce_non_negative_trade_volume']
+  }
+}
+
+Table ranking_method {
+  ranking_method_code varchar(16) [primary key]
+  ranking_method_description varchar(1024) [not null]
+  created_at timestamptz
+  created_by varchar(64)
+  updated_at timestamptz
+  updated_by varchar(64)
+}
+
+Table weighting_method {
+  weighting_method_code varchar(16) [primary key]
+  weighting_method_description varchar(1024) [not null]
+  created_at timestamptz
+  created_by varchar(64)
+  updated_at timestamptz
+  updated_by varchar(64)
+}
+
+Table performance_metric {
+  performance_metric_id smallint [primary key]
+  performance_metric_name varchar(16) [not null]
+  created_at timestamptz
+  created_by varchar(64)
+  updated_at timestamptz
+  updated_by varchar(64)
+}
+
+Table exchange_performance_metric {
+  exchange_performance_metric_id integer [primary key]
+  exchange_performance_metric_description varchar(1024) [not null]
+  performance_metric_id smallint [not null]
+  exchange_id integer [not null]
+  created_at timestamptz
+  created_by varchar(64)
+  updated_at timestamptz
+  updated_by varchar(64)
+}
+
+Table index_definition {
+  index_definition_id integer [primary key]
+  index_code varchar(16) [not null]
+  index_name varchar(128) [not null]
+  index_description varchar(1024)
+  base_date date [not null]
+  base_value numeric(12, 4) [not null]
+  total_number_of_constituents smallint [not null]
+  exchange_performance_metric_id integer [not null]
+  ranking_method_code varchar(16) [not null]
+  weighting_method_code varchar(16) [not null]
+  rebalancing_schedule varchar(16) [not null]
+  created_at timestamptz
+  created_by varchar(64)
+  updated_at timestamptz
+  updated_by varchar(64)
+
+  indexes {
+    (index_code) [unique]
+  }
+
+  checks {
+    `total_number_of_constituents > 0` [name: 'enforce_positive_total_number_of_constituents']
+    `base_value > 0` [name: 'enforce_positive_base_value']
+  }
+}
+
+Table index_constituent_base {
+  index_definition_id integer [not null]
+  listing_id integer [not null]
+  created_at timestamptz
+  created_by varchar(64)
+  updated_at timestamptz
+  updated_by varchar(64)
+
+  indexes {
+    (index_definition_id, listing_id) [pk]
+  }
+}
+
+Table index_daily_performance {
+  index_definition_id integer [not null]
+  trade_date date [not null]
+  index_value numeric(12, 4) [not null]
+  daily_return numeric(12, 4)
+  cumulative_return numeric(12, 4)
+  created_at timestamptz
+  created_by varchar(64)
+  updated_at timestamptz
+  updated_by varchar(64)
+
+  indexes {
+    (index_definition_id, trade_date) [pk]
+  }
+}
+
+Table index_rebalance {
+  index_rebalance_id integer [primary key]
+  index_definition_id integer [not null]
+  rebalance_date date [not null]
+  adjusted_divisor numeric(12, 4) [not null]
+  created_at timestamptz
+  created_by varchar(64)
+  updated_at timestamptz
+  updated_by varchar(64)
+
+  indexes {
+    (index_definition_id, rebalance_date) [unique]
+  }
+}
+
+Table constituent_change_type {
+  constituent_change_type_code varchar(8) [primary key]
+  constituent_change_type_description varchar(1024) [not null]
+  created_at timestamptz
+  created_by varchar(64)
+  updated_at timestamptz
+  updated_by varchar(64)
+}
+
+Table index_constituent_change {
+  index_rebalance_id integer [not null]
+  listing_id integer [not null]
+  constituent_change_type_code varchar(8)
+  created_at timestamptz
+  created_by varchar(64)
+  updated_at timestamptz
+  updated_by varchar(64)
+
+  indexes {
+    (index_rebalance_id, listing_id) [pk]
+  }
+}
+
+Ref: company.country_code > country.country_code
+
+Ref: company_shares_outstanding.company_id > company.company_id
+
+Ref: listing.listing_status_id > listing_status.listing_status_id
+
+Ref: listing.company_id > company.company_id
+
+Ref: listing.exchange_id > exchange.exchange_id
+
+Ref: listing_daily_performance.listing_id > listing.listing_id
+
+Ref: exchange_performance_metric.performance_metric_id > performance_metric.performance_metric_id
+
+Ref: exchange_performance_metric.exchange_id > exchange.exchange_id
+
+Ref: index_definition.ranking_method_code > ranking_method.ranking_method_code
+
+Ref: index_definition.weighting_method_code > weighting_method.weighting_method_code
+
+Ref: exchange_performance_metric.exchange_performance_metric_id < index_definition.exchange_performance_metric_id
+
+Ref: index_constituent_base.listing_id > listing.listing_id
+
+Ref: index_constituent_base.index_definition_id > index_definition.index_definition_id
+
+Ref: index_daily_performance.index_definition_id > index_definition.index_definition_id
+
+Ref: index_rebalance.index_definition_id > index_definition.index_definition_id
+
+Ref: index_constituent_change.constituent_change_type_code > constituent_change_type.constituent_change_type_code
+
+Ref: index_constituent_change.index_rebalance_id > index_rebalance.index_rebalance_id
+
+Ref: index_constituent_change.listing_id > listing.listing_id

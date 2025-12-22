@@ -1,3 +1,4 @@
+import os
 from typing import List
 from datetime import datetime, timedelta
 
@@ -6,7 +7,7 @@ from feeder.utility.Logger import Logger
 class Commons:
 
     __logger = Logger.get_logger()
-    __apiKey = 'apikey'
+    __apiKey = os.environ.get('API_KEY')
 
     @classmethod
     def build_params(cls, filters: dict = None) -> dict:

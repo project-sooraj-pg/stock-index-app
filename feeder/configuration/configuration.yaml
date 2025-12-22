@@ -25,4 +25,13 @@ local:
         async-api-call-batch-size: 300
         url: https://api.massive.com/v1/open-close
         filters:
-          adjusted: true
+          adjusted: 'true'
+  normalise:
+    queries:
+      - normalization.sql
+  upload:
+    table_names:
+      - company
+      - company_financials
+      - listing
+      - listing_daily_performance
