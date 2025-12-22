@@ -1,25 +1,24 @@
 BEGIN;
 
-CREATE TABLE "company" (
-  "company_id" integer PRIMARY KEY,
-  "company_name" varchar(128) NOT NULL,
-  "company_description" varchar(1024),
+CREATE TABLE "country" (
+  "country_code" varchar(4) PRIMARY KEY,
+  "country_name" varchar(64),
   "created_at" timestamptz,
   "created_by" varchar(64),
   "updated_at" timestamptz,
   "updated_by" varchar(64)
 );
 
-CREATE TABLE "company_shares_outstanding" (
-  "company_shares_outstanding_id" integer PRIMARY KEY,
-  "company_id" integer NOT NULL,
-  "total_shares_outstanding" bigint NOT NULL,
-  "effective_from" date NOT NULL,
+CREATE TABLE "company" (
+  "company_id" integer PRIMARY KEY,
+  "company_name" varchar(128) NOT NULL,
+  "company_description" varchar(1024),
+  "country_code" varchar(8) NOT NULL,
+  "website" varchar(128),
   "created_at" timestamptz,
   "created_by" varchar(64),
   "updated_at" timestamptz,
-  "updated_by" varchar(64),
-  CONSTRAINT "enforce_positive_total_shares_outstanding" CHECK (total_shares_outstanding > 0)
+  "updated_by" varchar(64)
 );
 
 CREATE TABLE "exchange" (
@@ -34,8 +33,17 @@ CREATE TABLE "exchange" (
 );
 
 CREATE TABLE "listing_status" (
-  "listing_status_id" smallint PRIMARY KEY,
+  "listing_status_code" varchar(4) PRIMARY KEY,
   "listing_status" varchar(8) NOT NULL,
+  "created_at" timestamptz,
+  "created_by" varchar(64),
+  "updated_at" timestamptz,
+  "updated_by" varchar(64)
+);
+
+CREATE TABLE "listing_type" (
+  "listing_type_code" varchar(8) PRIMARY KEY,
+  "listing_type_name" varchar(64) NOT NULL,
   "created_at" timestamptz,
   "created_by" varchar(64),
   "updated_at" timestamptz,
@@ -47,7 +55,8 @@ CREATE TABLE "listing" (
   "company_id" integer NOT NULL,
   "exchange_id" integer NOT NULL,
   "ticker_symbol" varchar(8) NOT NULL,
-  "listing_status_id" smallint NOT NULL,
+  "listing_type_code" varchar(8),
+  "listing_status_code" varchar(4) NOT NULL,
   "created_at" timestamptz,
   "created_by" varchar(64),
   "updated_at" timestamptz,
@@ -75,6 +84,17 @@ CREATE TABLE "listing_daily_performance" (
   CONSTRAINT "enforce_valid_close_price" CHECK (close_price BETWEEN low_price AND high_price),
   CONSTRAINT "enforce_non_negative_trade_volume" CHECK (trade_volume >= 0),
   PRIMARY KEY ("listing_id", "trade_date")
+);
+
+CREATE TABLE "listing_market_cap_change" (
+  "listing_id" integer NOT NULL,
+  "change_date" date NOT NULL,
+  "market_cap" numeric(20,4),
+  "created_at" timestamptz,
+  "created_by" varchar(64),
+  "updated_at" timestamptz,
+  "updated_by" varchar(64),
+  PRIMARY KEY ("listing_id", "change_date")
 );
 
 CREATE TABLE "ranking_method" (
@@ -127,6 +147,7 @@ CREATE TABLE "index_definition" (
   "ranking_method_code" varchar(16) NOT NULL,
   "weighting_method_code" varchar(16) NOT NULL,
   "rebalancing_schedule" varchar(16) NOT NULL,
+  "computation_method" varchar(64) NOT NULL,
   "created_at" timestamptz,
   "created_by" varchar(64),
   "updated_at" timestamptz,
@@ -189,8 +210,6 @@ CREATE TABLE "index_constituent_change" (
   PRIMARY KEY ("index_rebalance_id", "listing_id")
 );
 
-CREATE UNIQUE INDEX ON "company_shares_outstanding" ("company_id", "effective_from");
-
 CREATE INDEX ON "listing" ("company_id");
 
 CREATE UNIQUE INDEX ON "listing" ("ticker_symbol", "exchange_id");
@@ -199,15 +218,17 @@ CREATE UNIQUE INDEX ON "index_definition" ("index_code");
 
 CREATE UNIQUE INDEX ON "index_rebalance" ("index_definition_id", "rebalance_date");
 
-ALTER TABLE "company_shares_outstanding" ADD FOREIGN KEY ("company_id") REFERENCES "company" ("company_id");
+ALTER TABLE "company" ADD FOREIGN KEY ("country_code") REFERENCES "country" ("country_code");
 
-ALTER TABLE "listing" ADD FOREIGN KEY ("listing_status_id") REFERENCES "listing_status" ("listing_status_id");
+ALTER TABLE "listing" ADD FOREIGN KEY ("listing_status_code") REFERENCES "listing_status" ("listing_status_code");
+
+ALTER TABLE "listing" ADD FOREIGN KEY ("listing_type_code") REFERENCES "listing_type" ("listing_type_code");
 
 ALTER TABLE "listing" ADD FOREIGN KEY ("company_id") REFERENCES "company" ("company_id");
 
 ALTER TABLE "listing" ADD FOREIGN KEY ("exchange_id") REFERENCES "exchange" ("exchange_id");
 
-ALTER TABLE "listing_daily_performance" ADD FOREIGN KEY ("listing_id") REFERENCES "listing" ("listing_id");
+ALTER TABLE "listing_market_cap_change" ADD FOREIGN KEY ("listing_id") REFERENCES "listing" ("listing_id");
 
 ALTER TABLE "exchange_performance_metric" ADD FOREIGN KEY ("performance_metric_id") REFERENCES "performance_metric" ("performance_metric_id");
 
