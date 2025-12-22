@@ -228,6 +228,8 @@ ALTER TABLE "listing" ADD FOREIGN KEY ("company_id") REFERENCES "company" ("comp
 
 ALTER TABLE "listing" ADD FOREIGN KEY ("exchange_id") REFERENCES "exchange" ("exchange_id");
 
+ALTER TABLE "listing_daily_performance" ADD FOREIGN KEY ("listing_id") REFERENCES "listing" ("listing_id");
+
 ALTER TABLE "listing_market_cap_change" ADD FOREIGN KEY ("listing_id") REFERENCES "listing" ("listing_id");
 
 ALTER TABLE "exchange_performance_metric" ADD FOREIGN KEY ("performance_metric_id") REFERENCES "performance_metric" ("performance_metric_id");
