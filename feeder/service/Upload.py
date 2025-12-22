@@ -1,4 +1,5 @@
 import os
+from typing import List
 
 from feeder.utility.Configuration import Configuration
 from feeder.utility.DuckDB import DuckDB
@@ -21,19 +22,32 @@ class Upload:
         """Method to reload the given in postgres with the normalised table in duckdb"""
         table_names = cls.__configuration['upload']['table_names']
         cls.__attach_postgres_to_duckdb()
+        cls.__truncate_tables(table_names)
         for table_name in table_names:
             cls.__reload_table_in_postgres(table_name)
         cls.__detach_postgres_from_duckdb()
+
+    @classmethod
+    def __truncate_tables(cls, table_names:List[str]):
+        """Method to truncate given list of tables in postgres"""
+        cls.__logger.info("reversing insertion order for truncating the table")
+        table_names_in_truncating_order = reversed(table_names)
+        try:
+            for table_name in table_names_in_truncating_order:
+                cls.__logger.info(f"truncating table: {table_name}")
+                truncate_query = f"TRUNCATE TABLE {cls.__database}.public.{table_name}; "
+                _ = DuckDB.execute_query(truncate_query)
+            cls.__logger.info(f"truncated tables: {', '.join(table_names)}")
+        except Exception as exception:
+            cls.__logger.exception(exception)
 
     @classmethod
     def __reload_table_in_postgres(cls, table_name) -> None:
         """Method to reload given table in postgres with normalised table in duckdb"""
         try:
             cls.__logger.info(f"reloading data in {table_name} in database: {cls.__database}")
-            truncate_query = f"TRUNCATE TABLE {cls.__database}.public.{table_name}; "
-            DuckDB.execute_query(truncate_query)
             insert_query = cls.__load_insert_query_from_file(table_name)
-            DuckDB.execute_query(insert_query)
+            _ = DuckDB.execute_query(insert_query)
             cls.__logger.info("reload_completed")
         except Exception as exception:
             cls.__logger.exception(exception)
@@ -57,15 +71,9 @@ class Upload:
         """Method to attach postgres database to duckdb as a foreign database"""
         cls.__logger.info("attaching postgres to duckdb")
         try:
-            postgres_credentials = f"""
-                'dbname={cls.__database}
-                user={cls.__user}
-                password={cls.__password}
-                host={cls.__host}
-                port={cls.__port}
-            """
-            query = f"ATTACH {postgres_credentials} AS {cls.__database} (TYPE postgres);"
-            DuckDB.execute_query(query)
+            postgres_credentials = f"dbname={cls.__database} user={cls.__user} password={cls.__password} host={cls.__host} port={cls.__port}"
+            query = f"ATTACH '{postgres_credentials}' AS {cls.__database} (TYPE postgres);"
+            _ = DuckDB.execute_query(query)
             cls.__logger.info(f"postgres database {cls.__database} at {cls.__host}:{cls.__port} attached to duckdb")
         except Exception as exception:
             cls.__logger.exception(exception)
@@ -76,7 +84,7 @@ class Upload:
         cls.__logger.info(f"detaching postgres database (name:{cls.__database}) to duckdb")
         try:
             query = f"DETACH {cls.__database}"
-            DuckDB.execute_query(query)
+            _ = DuckDB.execute_query(query)
             cls.__logger.info(f"postgres database {cls.__database} detached from duckdb")
         except Exception as exception:
             cls.__logger.exception(exception)

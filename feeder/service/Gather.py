@@ -30,7 +30,6 @@ class Gather:
             for batch in batches:
                 cls.__gather_ticker_overview_by_trade_date_batches(ticker_symbols=ticker_symbols, trade_dates=batch)
                 cls.__gather_price_data_by_trade_date_batches(ticker_symbols=ticker_symbols, trade_dates=batch)
-            DuckDB.close_connection()
         except Exception as exception:
             cls.__logger.exception(exception)
 

@@ -101,5 +101,4 @@ class DuckDB:
         columns = [desc[0] for desc in cursor.description]
         rows = cursor.fetchall()
         results = [dict(zip(columns, row)) for row in rows]
-        cls.__logger.info(f'results obtained: number of items: {len(results)}')
         return results

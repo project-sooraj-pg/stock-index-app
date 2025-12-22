@@ -4,8 +4,8 @@ local:
   # configurations about gathering data
   gather:
     start_date: '2025-12-15'
+    end_date: '2025-12-19'
     persistence-batch-size: 10
-    end_date: null
     data-source:
       tickers:
         url: https://api.massive.com/v3/reference/tickers
@@ -28,10 +28,10 @@ local:
           adjusted: 'true'
   normalise:
     queries:
-      - normalization.sql
+      - normalisation.sql
   upload:
     table_names:
       - company
-      - company_financials
       - listing
       - listing_daily_performance
+      - listing_market_cap_change

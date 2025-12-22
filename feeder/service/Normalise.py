@@ -15,7 +15,7 @@ class Normalise:
         cls.__logger.info('normalising tables')
         normalisation_queries = cls.__get_normalisation_scripts()
         for normalisation_query in normalisation_queries:
-            DuckDB.execute_query(normalisation_query)
+            _ = DuckDB.execute_query(normalisation_query)
         cls.__logger.info('normalisation completed')
 
     @classmethod

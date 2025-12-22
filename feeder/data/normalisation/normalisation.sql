@@ -2,28 +2,12 @@ BEGIN;
 
 --- create normalized company table
 CREATE OR REPLACE TABLE company AS
-SELECT DISTINCT
-    CAST(COALESCE(t.cik, o.cik) AS BIGINT) AS company_id,
-    UPPER(t.name) AS company_name,
-    o.description AS company_description,
-    UPPER(t.locale) AS country_code,
-    o.homepage_url AS website,
-    NOW() AS created_at,
-    'feeder' AS created_by,
-    NOW() AS updated_at,
-    'feeder' AS updated_by
-FROM ticker t
-LEFT JOIN ticker_overview o
-    ON t.ticker = o.ticker
-WHERE COALESCE(t.cik, o.cik) IS NOT NULL;
-
---- create normalized company_daily_financials table
-CREATE OR REPLACE TABLE company_financials AS
 SELECT
     company_id,
-    financial_date,
-    shares_outstanding,
-    market_cap,
+    company_name,
+    company_description,
+    country_code,
+    website,
     NOW() AS created_at,
     'feeder' AS created_by,
     NOW() AS updated_at,
@@ -31,50 +15,49 @@ SELECT
 FROM (
     SELECT
         CAST(o.cik AS BIGINT) AS company_id,
-        o.data_date::DATE AS financial_date,
-        o.share_class_shares_outstanding AS shares_outstanding,
-        o.market_cap AS market_cap,
-
-        LAG(o.share_class_shares_outstanding) OVER (
-            PARTITION BY o.cik
-            ORDER BY o.data_date
-        ) AS prev_shares_outstanding,
-
-        LAG(o.market_cap) OVER (
-            PARTITION BY o.cik
-            ORDER BY o.data_date
-        ) AS prev_market_cap
+        ANY_VALUE(o.name) AS company_name,
+        ANY_VALUE(o.description) AS company_description,
+        ANY_VALUE(UPPER(o.locale)) AS country_code,
+        ANY_VALUE(o.homepage_url) AS website
     FROM ticker_overview o
     WHERE o.cik IS NOT NULL
-      AND o.data_date IS NOT NULL
-)
-WHERE
-    -- first ever record for the company
-    prev_shares_outstanding IS NULL
-    AND prev_market_cap IS NULL
-
-    -- OR any meaningful change
-    OR shares_outstanding IS DISTINCT FROM prev_shares_outstanding
-    OR market_cap IS DISTINCT FROM prev_market_cap;
+    GROUP BY o.cik
+);
 
 --- create listing table
 CREATE OR REPLACE TABLE listing AS
+WITH ranked AS (
+    SELECT
+        ROW_NUMBER() OVER (
+            PARTITION BY t.cik
+            ORDER BY t.ticker ASC
+        ) AS rn,
+
+        CAST(t.cik AS BIGINT) AS company_id,
+        t.ticker AS ticker_symbol,
+        t.type AS listing_type_code,
+        t.active
+    FROM ticker t
+    INNER JOIN company c
+        ON t.cik = c.company_id
+    WHERE t.cik IS NOT NULL
+)
 SELECT
-    ROW_NUMBER() OVER (ORDER BY t.ticker) AS listing_id,
-    CAST(t.cik AS BIGINT) AS company_id,
+    ROW_NUMBER() OVER (ORDER BY ticker_symbol) AS listing_id,
+    company_id,
     1 AS exchange_id,
-    t.ticker AS ticker_symbol,
-    t.type AS listing_type_code,
+    ticker_symbol,
+    listing_type_code,
     CASE
-        WHEN t.active = true THEN 'A'
+        WHEN active = true THEN 'A'
         ELSE 'I'
     END AS listing_status_code,
     NOW() AS created_at,
     'feeder' AS created_by,
     NOW() AS updated_at,
     'feeder' AS updated_by
-FROM ticker t
-WHERE t.cik IS NOT NULL;
+FROM ranked
+WHERE rn = 1;
 
 --- create listing_daily_performance table
 CREATE OR REPLACE TABLE listing_daily_performance AS
@@ -85,12 +68,45 @@ SELECT
     p.high AS high_price,
     p.low AS low_price,
     p.close AS close_price,
-    p.volume,
-    NOW() AS created_at
+    p.volume AS trade_volume,
+    NOW() AS created_at,
+    'feeder' AS created_by,
+    NOW() AS updated_at,
+    'feeder' AS updated_by
 FROM ticker_price p
 JOIN listing l
     ON p.symbol = l.ticker_symbol
 WHERE p."from" IS NOT NULL;
 
-COMMIT;
+--- create listing_market_cap_change
+CREATE OR REPLACE TABLE  listing_market_cap_change AS
+WITH overview_with_listing AS (
+    SELECT
+        l.listing_id,
+        t.data_date::DATE AS change_date,
+        t.market_cap
+    FROM ticker_overview t
+    JOIN listing l
+        ON t.ticker = l.ticker_symbol
+    WHERE t.market_cap IS NOT NULL
+),
+ranked_changes AS (
+    SELECT
+        *,
+        LAG(market_cap) OVER (PARTITION BY listing_id ORDER BY change_date) AS prev_market_cap
+    FROM overview_with_listing
+)
+SELECT
+    listing_id,
+    change_date,
+    market_cap,
+    NOW() AS created_at,
+    'feeder' AS created_by,
+    NOW() AS updated_at,
+    'feeder' AS updated_by
+FROM ranked_changes
+WHERE prev_market_cap IS NULL       -- first valid value
+   OR market_cap <> prev_market_cap
+ORDER BY listing_id, change_date;
 
+COMMIT;

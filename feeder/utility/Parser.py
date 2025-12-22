@@ -14,6 +14,8 @@ class Parser:
         arguments = cls.__parse_arguments()
         if arguments.fetch_from_origin:
             return arguments.fetch_from_origin == 'true'
+        else:
+            cls.__logger.info("no arguments provided. defaulting to fetch_from_origin = true")
         return True
 
     @classmethod
