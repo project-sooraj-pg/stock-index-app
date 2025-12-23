@@ -1,16 +1,19 @@
--- PROCEDURE: public.compute_index_daily_performance(numeric)
+-- FUNCTION: public.compute_index_daily_performance(numeric)
 
--- DROP PROCEDURE IF EXISTS public.compute_index_daily_performance(numeric);
+-- DROP FUNCTION IF EXISTS public.compute_index_daily_performance(numeric);
 
-CREATE OR REPLACE PROCEDURE public.compute_index_daily_performance(
-	IN p_base_value numeric DEFAULT NULL::numeric)
-LANGUAGE 'plpgsql'
+CREATE OR REPLACE FUNCTION public.compute_index_daily_performance(
+    p_base_value numeric DEFAULT NULL::numeric
+)
+RETURNS TABLE(status text, message text)
+LANGUAGE plpgsql
 AS $BODY$
 DECLARE
     v_base_date   DATE;
     v_base_value  NUMERIC;
+    v_rows_inserted INTEGER := 0;
+    v_rows_this_insert INTEGER := 0;
 BEGIN
-
     -- Truncate the table to ensure idempotency
     TRUNCATE TABLE index_daily_performance;
 
@@ -20,7 +23,8 @@ BEGIN
     FROM index_daily_constituent;
 
     IF v_base_date IS NULL THEN
-        RAISE EXCEPTION 'No constituents found for building index performance';
+        RETURN QUERY SELECT 'FAILED', 'No constituents found for building index performance';
+        RETURN;
     END IF;
 
     -- 2. determine base value - sum of close_price of index constituents
@@ -36,62 +40,66 @@ BEGIN
         WHERE idc.trade_date = v_base_date;
 
         IF v_base_value IS NULL THEN
-            RAISE EXCEPTION 'unable to compute base value';
+            RETURN QUERY SELECT 'FAILED', 'unable to compute base value';
+            RETURN;
         END IF;
     END IF;
 
     -- 3. insert base day index value
-    INSERT INTO index_daily_performance (trade_date, index_value, created_at, created_by)
-    VALUES (v_base_date, v_base_value, NOW(), 'system')
-    ON CONFLICT (trade_date) DO NOTHING;
+    BEGIN
+        INSERT INTO index_daily_performance (trade_date, index_value, created_at, created_by)
+        VALUES (v_base_date, v_base_value, NOW(), 'system')
+        ON CONFLICT (trade_date) DO NOTHING;
+    EXCEPTION WHEN OTHERS THEN
+        RETURN QUERY SELECT 'FAILED', 'Error inserting base day index value: ' || SQLERRM;
+        RETURN;
+    END;
+    GET DIAGNOSTICS v_rows_this_insert = ROW_COUNT;
+    v_rows_inserted := v_rows_inserted + v_rows_this_insert;
 
     -- 4. compute and insert subsequent index values
-    INSERT INTO index_daily_performance (trade_date, index_value, created_at, created_by)
-    SELECT
-        --- trade date
-        d.trade_date AS trade_date,
-        --- index value as base value * cumulative product of price ratio
-        v_base_value
-        * EXP(SUM(LN(d.avg_price_ratio))
-              OVER (ORDER BY d.trade_date
-                    ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)) AS index_value,
-        NOW() AS created_at,
-        'system' AS created_by
-    FROM (
+    BEGIN
+        INSERT INTO index_daily_performance (trade_date, index_value, created_at, created_by)
         SELECT
-            --- trade date
-            trade_date,
-            --- average price ratio of index constituent on that date
-            AVG(price_ratio) AS avg_price_ratio
+            d.trade_date AS trade_date,
+            v_base_value
+            * EXP(SUM(LN(d.avg_price_ratio))
+                  OVER (ORDER BY d.trade_date
+                        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)) AS index_value,
+            NOW() AS created_at,
+            'system' AS created_by
         FROM (
             SELECT
-                -- trade date
-                idc.trade_date,
-                -- listing_id
-                idc.listing_id,
-                -- price_ratio: price ratio of listing_id on trade date
-                -- (close_price/previous_close)
-                ldp.close_price
-                / LAG(ldp.close_price) OVER (
-                    PARTITION BY idc.listing_id
-                    ORDER BY idc.trade_date
-                ) AS price_ratio
-            FROM index_daily_constituent idc
-            JOIN listing_daily_performance ldp
-              ON ldp.listing_id = idc.listing_id
-             AND ldp.trade_date = idc.trade_date
-            -- IMPORTANT:
-            -- DO NOT filter by base_date here.
-            -- LAG() must see the base_date row so that
-            -- the first computed day has a valid ratio.
-        ) t --- price ratio computation
-        WHERE price_ratio IS NOT NULL
-          AND trade_date > v_base_date   -- <-- filter AFTER ratio computation
-        GROUP BY trade_date
-    ) d ---average price ratio computation
-    ORDER BY d.trade_date;
+                trade_date,
+                AVG(price_ratio) AS avg_price_ratio
+            FROM (
+                SELECT
+                    idc.trade_date,
+                    idc.listing_id,
+                    ldp.close_price
+                    / LAG(ldp.close_price) OVER (
+                        PARTITION BY idc.listing_id
+                        ORDER BY idc.trade_date
+                    ) AS price_ratio
+                FROM index_daily_constituent idc
+                JOIN listing_daily_performance ldp
+                  ON ldp.listing_id = idc.listing_id
+                 AND ldp.trade_date = idc.trade_date
+            ) t
+            WHERE price_ratio IS NOT NULL
+              AND trade_date > v_base_date
+            GROUP BY trade_date
+        ) d
+        ORDER BY d.trade_date;
+    EXCEPTION WHEN OTHERS THEN
+        RETURN QUERY SELECT 'FAILED', 'Error inserting subsequent index values: ' || SQLERRM;
+        RETURN;
+    END;
+    GET DIAGNOSTICS v_rows_this_insert = ROW_COUNT;
+    v_rows_inserted := v_rows_inserted + v_rows_this_insert;
 
+    RETURN QUERY SELECT 'SUCCESS', v_rows_inserted::text;
 END;
 $BODY$;
-ALTER PROCEDURE public.compute_index_daily_performance(numeric)
+ALTER FUNCTION public.compute_index_daily_performance(numeric)
     OWNER TO "db-owner";
