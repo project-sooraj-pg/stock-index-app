@@ -9,3 +9,4 @@ feeder/service/__pycache__/*
 feeder/data/duckdb/json/*
 .DS_Store
 .pyc
+backup/*

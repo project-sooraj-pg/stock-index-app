@@ -29,7 +29,8 @@ class Commons:
         cls.__logger.info(f"building date range starting from: {start_date}, to {end.strftime('%Y-%m-%d')}")
         current = start
         while current <= end:
-            date_range.append(current.strftime('%Y-%m-%d'))
+            if current.weekday() < 5:
+                date_range.append(current.strftime('%Y-%m-%d'))
             current += timedelta(days=1)
         cls.__logger.info(f'date range built. number of dates: {len(date_range)}')
         return date_range
