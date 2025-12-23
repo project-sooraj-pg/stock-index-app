@@ -1,3 +1,6 @@
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from backend.app.core.configuration import configuration
 from backend.app.model.param.index_construction import BuildIndexParams
 from backend.app.model.param.index_retrieval import IndexPerformanceParams, IndexCompositionParams, CompositionChangesParams
@@ -5,8 +8,27 @@ from backend.app.model.param.index_retrieval import IndexPerformanceParams, Inde
 
 class ComputeService:
 
-    async def build_index(self, params: BuildIndexParams) -> str:
-        pass
+    async def build_index(self, session: AsyncSession, params: BuildIndexParams, ) -> str:
+        async with session.begin():
+            # compute index daily constituents
+            status, message = await self._call_database_function(
+                session,
+                "compute_index_daily_constituent",
+                configuration.total_number_of_index_constituents,
+                params.start_date,
+                params.end_date,
+            )
+            if status != "SUCCESS":
+                raise RuntimeError(f"Unable to build index: {message}")
+            # compute index daily performance
+            status, message = await self._call_database_function(
+                session,
+                "compute_index_daily_performance",
+                configuration.index_base_value
+            )
+            if status != "SUCCESS":
+                raise RuntimeError(f"Index computation failed: {message}")
+        return f"Index created. number of values generated: {message}"
 
     async def get_index_performance(self, params: IndexPerformanceParams):
         pass
@@ -17,6 +39,16 @@ class ComputeService:
     async def get_composition_changes(self, params: CompositionChangesParams):
         pass
 
+    async def _call_database_function(self, session: AsyncSession, function_name: str, *args) -> tuple[str, str]:
+        """Method to execute stored procedure"""
+        placeholders = ", ".join(f":p{i}" for i in range(len(args)))
+        query = text(f"""SELECT status, message FROM {function_name}({placeholders})""")
+        params = {f"p{i}": arg for i, arg in enumerate(args)}
+        result = await session.execute(query, params)
+        row = result.fetchone()
+        if row is None:
+            raise RuntimeError(f"{function_name} returned no result")
+        return row.status, row.message
 
 def get_compute_service():
     return ComputeService()
