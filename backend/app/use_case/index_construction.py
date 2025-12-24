@@ -1,6 +1,7 @@
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.redis import get_redis
 from app.model.param.index_construction import BuildIndexParams
 from app.service.index_construction import IndexConstructionService, get_index_construction_service
 
@@ -11,6 +12,9 @@ class IndexConstructionUseCase:
         self.index_construction_service = index_construction_service
 
     async def build_index(self, session: AsyncSession, params: BuildIndexParams) -> None:
+        # clear cache before building index
+        cache =  get_redis()
+        await cache.flushall()
         start_date = params.start_date
         end_date = params.end_date
         return await self.index_construction_service.build_index(session=session, start_date=start_date, end_date=end_date)
