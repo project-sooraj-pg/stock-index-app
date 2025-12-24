@@ -57,12 +57,12 @@ poetry run feeder --fetch_from_origin=false
 
 ## Useful Curl Commands
 
-### 1. Build index with given parameters
+#### 1. Build index with given parameters
 ```bash
 curl -X POST "http://localhost:8000/api/v1/build_index/?start_date=2025-08-04&end_date=2025-09-26"
 ```
 
-### 2. Get index performance data (list)
+#### 2. Get index performance data (list)
 ```bash
 curl -X 'GET' \
   'http://localhost:8000/api/v1/index-performance?start_date=2025-08-04&end_date=2025-09-25' \
@@ -70,7 +70,7 @@ curl -X 'GET' \
   -w "%{http_code}\n"
 ```
 
-### 3. Get index composition data (list)
+#### 3. Get index composition data (list)
 ```bash
 curl -X 'GET' \
   'http://localhost:8000/api/v1/index-composition?trade_date=2025-08-18' \
@@ -78,7 +78,7 @@ curl -X 'GET' \
   -w "%{http_code}\n"
 ```
 
-### 4. Get index composition changes (list)
+#### 4. Get index composition changes (list)
 ```bash
 curl -X 'GET' \
   'http://localhost:8000/api/v1/composition-changes?start_date=2025-08-04&end_date=2025-09-12' \
