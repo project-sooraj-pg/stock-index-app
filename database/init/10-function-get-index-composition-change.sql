@@ -15,16 +15,10 @@ AS $BODY$
 DECLARE
     v_min_date DATE;
     v_max_date DATE;
+    v_start_date DATE;
+    v_end_date DATE;
 BEGIN
-    -- 1. Sanity check
-    IF p_start_date > p_end_date THEN
-        RAISE EXCEPTION
-            'Invalid date range: start_date (%) is after end_date (%)',
-            p_start_date, p_end_date
-            USING ERRCODE = '22023';
-    END IF;
-
-    -- 2. Available data range
+    -- 1. Available data range
     SELECT
         MIN(idc.trade_date),
         MAX(idc.trade_date)
@@ -39,21 +33,33 @@ BEGIN
             USING ERRCODE = 'P0001';
     END IF;
 
-    -- 3. Range validation
-    IF p_start_date < v_min_date OR p_end_date > v_max_date THEN
+    -- 2. Use min/max if input is null
+    v_start_date := COALESCE(p_start_date, v_min_date);
+    v_end_date := COALESCE(p_end_date, v_max_date);
+
+    -- 3. Sanity check
+    IF v_start_date > v_end_date THEN
+        RAISE EXCEPTION
+            'Invalid date range: start_date (%) is after end_date (%)',
+            v_start_date, v_end_date
+            USING ERRCODE = '22023';
+    END IF;
+
+    -- 4. Strict boundary enforcement
+    IF v_start_date < v_min_date OR v_end_date > v_max_date THEN
         RAISE EXCEPTION
             'Requested range (%)–(%) is outside available data range (%)–(%)',
-            p_start_date, p_end_date,
+            v_start_date, v_end_date,
             v_min_date, v_max_date
             USING ERRCODE = '22023';
     END IF;
 
-    -- 4. Return constituent changes
+    -- 5. Return constituent changes
     RETURN QUERY
     WITH ordered_dates AS (
         SELECT DISTINCT trade_date
         FROM index_daily_constituent
-        WHERE trade_date BETWEEN p_start_date AND p_end_date
+        WHERE trade_date BETWEEN v_start_date AND v_end_date
         ORDER BY trade_date
     ),
     date_pairs AS (
