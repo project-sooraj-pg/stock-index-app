@@ -2,10 +2,12 @@ import os
 from typing import List
 from datetime import datetime, timedelta
 
-from feeder.utility.Logger import Logger
+from dotenv import load_dotenv
+
+from utility.Logger import Logger
 
 class Commons:
-
+    load_dotenv()
     __logger = Logger.get_logger()
     __apiKey = os.environ.get('API_KEY')
 
@@ -29,7 +31,8 @@ class Commons:
         cls.__logger.info(f"building date range starting from: {start_date}, to {end.strftime('%Y-%m-%d')}")
         current = start
         while current <= end:
-            date_range.append(current.strftime('%Y-%m-%d'))
+            if current.weekday() < 5:
+                date_range.append(current.strftime('%Y-%m-%d'))
             current += timedelta(days=1)
         cls.__logger.info(f'date range built. number of dates: {len(date_range)}')
         return date_range

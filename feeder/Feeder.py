@@ -1,10 +1,10 @@
-from feeder.utility.DuckDB import DuckDB
+from utility.DuckDB import DuckDB
 from utility.Logger import Logger
-from feeder.utility.Parser import Parser
+from utility.Parser import Parser
 
-from feeder.service.Gather import Gather
-from feeder.service.Upload import Upload
-from feeder.service.Normalise import Normalise
+from service.Gather import Gather
+from service.Upload import Upload
+from service.Normalise import Normalise
 
 class Feeder:
     __logger = Logger.get_logger()
@@ -29,5 +29,8 @@ class Feeder:
             cls.__logger.exception(exception)
         cls.__logger.info('application exit')
 
-if __name__ == '__main__':
+def main():
     Feeder.execute()
+
+if __name__ == '__main__':
+    main()

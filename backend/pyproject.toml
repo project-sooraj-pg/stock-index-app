@@ -1,17 +1,41 @@
 [tool.poetry]
-name = "stock-index-backend"
+name = "backend"
 version = "0.1.0"
-description = "A professional Flask API for stock index app."
-authors = ["Your Name <your@email.com>"]
+description = "Stock Index Application FastAPI Backend"
+authors = ["Sooraj P. G. <project.sooraj.pg@gmail.com>"]
+package-mode = false
 
 [tool.poetry.dependencies]
-python = "^3.11"
-flask = "^3.0.0"
-flask-restx = "^1.3.0"
-redis = "^5.0.0"
-psycopg2-binary = "^2.9.9"
+python = ">=3.11,<3.12"
+annotated-doc = "0.0.4"
+annotated-types = "0.7.0"
+anyio = "4.12.0"
+async-timeout = "5.0.1"
+asyncpg = "0.31.0"
+click = "8.3.1"
+dotenv = "0.9.9"
+et_xmlfile = "2.0.0"
+fastapi = "0.127.0"
+greenlet = "3.3.0"
+h11 = "0.16.0"
+idna = "3.11"
+numpy = "2.4.0"
+openpyxl = "3.1.5"
+pandas = "2.3.3"
+pydantic = "2.12.5"
+pydantic_core = "2.41.5"
+python-dateutil = "2.9.0.post0"
+python-dotenv = "1.2.1"
+pytz = "2025.2"
+redis = "7.1.0"
+six = "1.17.0"
+SQLAlchemy = "2.0.45"
+starlette = "0.50.0"
+typing-inspection = "0.4.2"
+typing_extensions = "4.15.0"
+tzdata = "2025.3"
+uvicorn = "0.40.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
-

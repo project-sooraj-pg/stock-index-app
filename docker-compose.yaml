@@ -3,9 +3,9 @@ services:
     container_name: database
     image: postgres:17
     environment:
-      # set up database using database owner credential from env file
-      - POSTGRES_USER=${POSTGRES_DB_OWNER}
-      - POSTGRES_PASSWORD=${POSTGRES_DB_OWNER_PASSWORD}
+      # set up database using database user credential from env file
+      - POSTGRES_USER=${POSTGRES_DB_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_DB_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
     ports:
       - "${POSTGRES_DB_PORT}:5432"
@@ -13,7 +13,7 @@ services:
       # initialize database with scripts from ./database/init
       - ./database/init:/docker-entrypoint-initdb.d:ro
       # persist database data in ./database/data
-      - ./database/data/server:/var/lib/postgresql/data
+      - ${POSTGRES_DB_PERSISTENCE_VOLUME}:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_DB_OWNER} -d ${POSTGRES_DB}" ]
       interval: 5s
@@ -28,10 +28,10 @@ services:
       - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
       - PGADMIN_CONFIG_SERVER_MODE=True
     ports:
-      - "5050:80"
+      - "${PGADMIN_PORT}:80"
     volumes:
       # persist database-client state
-      - ./database/data/client:/var/lib/pgadmin
+      - ${PGADMIN_PERSISTENCE_VOLUME}:/var/lib/pgadmin
     depends_on:
       - database
 
@@ -39,11 +39,24 @@ services:
     image: redis:7
     container_name: redis
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT}:6379"
 
   backend:
     build: ./backend
     container_name: backend
+    environment:
+      # postgres database variables
+      - POSTGRES_DB_USER=${POSTGRES_DB_USER}
+      - POSTGRES_DB_PASSWORD=${POSTGRES_DB_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_DB_HOST=database
+      - POSTGRES_DB_PORT=${POSTGRES_DB_PORT}
+      # redis cache variables
+      - REDIS_HOST=redis
+      - REDIS_PORT=${REDIS_PORT}
+      # index logic variables
+      - INDEX_BASE_VALUE=${INDEX_BASE_VALUE}
+      - TOTAL_NUMBER_OF_INDEX_CONSTITUENTS=${TOTAL_NUMBER_OF_INDEX_CONSTITUENTS}
     ports:
       - "8000:8000"
     depends_on:

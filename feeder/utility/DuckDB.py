@@ -6,7 +6,7 @@ import duckdb
 
 from typing import List
 
-from feeder.utility.Logger import Logger
+from utility.Logger import Logger
 
 class DuckDB:
     __connection = None

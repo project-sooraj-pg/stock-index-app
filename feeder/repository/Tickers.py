@@ -3,10 +3,10 @@ import asyncio
 from datetime import  date
 from typing import List, Optional
 
-from feeder.utility.Web import Web
-from feeder.utility.Logger import Logger
-from feeder.utility.Commons import Commons
-from feeder.utility.Configuration import Configuration
+from utility.Web import Web
+from utility.Logger import Logger
+from utility.Commons import Commons
+from utility.Configuration import Configuration
 
 class Tickers:
 

@@ -1,6 +1,6 @@
 import yaml
 
-from feeder.utility.Logger import Logger
+from utility.Logger import Logger
 
 class Configuration:
     __configuration = None

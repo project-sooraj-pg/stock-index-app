@@ -1,14 +1,19 @@
+# active environment
 active: local
 
 local:
   # configurations about gathering data
   gather:
-    start_date: '2025-12-15'
-    end_date: '2025-12-19'
+    # data will be fetched only for the range specified
+    # weekends will be ignored while calling API
+    start_date: '2025-08-04'
+    end_date: '2025-09-26'
     persistence-batch-size: 10
     data-source:
       tickers:
         url: https://api.massive.com/v3/reference/tickers
+        # filters will be directly converted to query parameters
+        # ref - https://massive.com for more details
         filters:
           exchange: XNYS
           market: stocks
@@ -20,17 +25,28 @@ local:
       ticker-overview:
         url: https://api.massive.com/v3/reference/tickers
         filters: null
+        # number of parallel api calls
         async-api-call-batch-size: 300
       daily-ticker-summary:
+        # number of parallel api calls
         async-api-call-batch-size: 300
         url: https://api.massive.com/v1/open-close
+        # filters will be directly converted to query parameters
+        # ref - https://massive.com for more details
         filters:
           adjusted: 'true'
+  # configurations for normalising data
   normalise:
     queries:
+      # query to normalise gathered data and store back in duckdb itself
       - normalisation.sql
+  # configurations for uploading data to postgres
   upload:
+    # table names to be uploaded
     table_names:
+      # tables must follow level order
+      # (e.g.: if table-2 references table-1, table-1 must be listed first)
+      # tables will be truncated for idempotency in the reverse order
       - company
       - listing
       - listing_daily_performance

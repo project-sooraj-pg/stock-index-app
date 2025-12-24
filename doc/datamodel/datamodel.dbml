@@ -1,0 +1,153 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+Table country {
+  country_code varchar(4) [primary key]
+  country_name varchar(64)
+  created_at timestamptz
+  created_by varchar(64)
+  updated_at timestamptz
+  updated_by varchar(64)
+
+}
+
+Table company {
+  company_id integer [primary key]
+  company_name varchar(128) [not null]
+  company_description varchar(1024)
+  country_code varchar(8) [not null]
+  website varchar(128)
+  created_at timestamptz
+  created_by varchar(64)
+  updated_at timestamptz
+  updated_by varchar(64)
+}
+
+Table exchange {
+  exchange_id integer [primary key]
+  exchange_code varchar(8) [not null]
+  exchange_name varchar(128) [not null]
+  exchange_description varchar(1024)
+  created_at timestamptz
+  created_by varchar(64)
+  updated_at timestamptz
+  updated_by varchar(64)
+}
+
+Table listing_status {
+  listing_status_code varchar(4) [primary key]
+  listing_status varchar(8) [not null]
+  created_at timestamptz
+  created_by varchar(64)
+  updated_at timestamptz
+  updated_by varchar(64)
+}
+
+Table listing_type {
+  listing_type_code varchar(8) [primary key]
+  listing_type_name varchar(64) [not null]
+  created_at timestamptz
+  created_by varchar(64)
+  updated_at timestamptz
+  updated_by varchar(64)
+}
+
+Table listing {
+  listing_id integer [primary key]
+  company_id integer [not null]
+  exchange_id integer [not null]
+  ticker_symbol varchar(8) [not null]
+  listing_type_code varchar(8)
+  listing_status_code varchar(4) [not null]
+  created_at timestamptz
+  created_by varchar(64)
+  updated_at timestamptz
+  updated_by varchar(64)
+
+  indexes {
+    (company_id)
+    (ticker_symbol, exchange_id) [unique]
+  }
+}
+
+Table listing_daily_performance {
+  listing_id integer [not null]
+  trade_date date [not null]
+  open_price numeric(12, 4)
+  high_price numeric(12, 4)
+  low_price numeric(12, 4)
+  close_price numeric(12, 4)
+  trade_volume bigint
+  created_at timestamptz
+  created_by varchar(64)
+  updated_at timestamptz
+  updated_by varchar(64)
+
+  indexes {
+    (listing_id, trade_date) [pk]
+  }
+
+  checks {
+    `open_price >= 0` [name: 'enforce_non_negative_open_price']
+    `high_price >= 0` [name: 'enforce_non_negative_high_price']
+    `low_price >= 0` [name: 'enforce_non_negative_low_price']
+    `close_price >= 0` [name: 'enforce_non_negative_close_price']
+    `high_price >= low_price` [name: 'enforce_high_price_not_less_than_low_price']
+    `open_price BETWEEN low_price AND high_price` [name: 'enforce_valid_open_price']
+    `close_price BETWEEN low_price AND high_price` [name: 'enforce_valid_close_price']
+    `trade_volume >= 0` [name: 'enforce_non_negative_trade_volume']
+  }
+}
+
+Table listing_market_cap_change {
+  listing_id integer [not null]
+  change_date date [not null]
+  market_cap numeric(20, 4)
+  created_at timestamptz
+  created_by varchar(64)
+  updated_at timestamptz
+  updated_by varchar(64)
+
+  indexes {
+    (listing_id, change_date) [pk]
+  }
+}
+
+Table index_daily_constituent {
+  trade_date date [not null]
+  listing_id integer [not null]
+  market_cap_rank smallint [not null]
+  created_at timestamptz
+  created_by varchar(64)
+  updated_at timestamptz
+  updated_by varchar(64)
+
+  indexes {
+    (trade_date, listing_id) [pk]
+  }
+}
+
+Table index_daily_performance {
+  trade_date date [primary key]
+  index_value numeric(12, 4) [not null]
+  created_at timestamptz
+  created_by varchar(64)
+  updated_at timestamptz
+  updated_by varchar(64)
+}
+
+Ref: company.country_code > country.country_code
+
+Ref: listing.listing_status_code > listing_status.listing_status_code
+
+Ref: listing.listing_type_code > listing_type.listing_type_code
+
+Ref: listing.company_id > company.company_id
+
+Ref: listing.exchange_id > exchange.exchange_id
+
+Ref: listing_daily_performance.listing_id > listing.listing_id
+
+Ref: listing_market_cap_change.listing_id > listing.listing_id
+
+Ref: index_daily_constituent.listing_id > listing.listing_id

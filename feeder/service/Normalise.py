@@ -1,8 +1,8 @@
 from typing import List
 
-from feeder.utility.Configuration import Configuration
-from feeder.utility.DuckDB import DuckDB
-from feeder.utility.Logger import Logger
+from utility.Configuration import Configuration
+from utility.DuckDB import DuckDB
+from utility.Logger import Logger
 
 
 class Normalise:

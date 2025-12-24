@@ -61,7 +61,7 @@ WHERE rn = 1;
 
 --- create listing_daily_performance table
 CREATE OR REPLACE TABLE listing_daily_performance AS
-SELECT
+SELECT DISTINCT
     l.listing_id,
     p."from"::DATE AS trade_date,
     p.open AS open_price,
