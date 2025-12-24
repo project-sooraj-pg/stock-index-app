@@ -1,22 +1,23 @@
+from datetime import date
+
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.core.configuration import configuration
-from backend.app.model.param.index_construction import BuildIndexParams
 from backend.app.model.param.index_retrieval import IndexPerformanceParams, IndexCompositionParams, CompositionChangesParams
 
 
-class ComputeService:
+class IndexConstructionService:
 
-    async def build_index(self, session: AsyncSession, params: BuildIndexParams, ) -> str:
+    async def build_index(self, session: AsyncSession, start_date: date = None, end_date: date = None) -> str:
         async with session.begin():
             # compute index daily constituents
             status, message = await self._call_database_function(
                 session,
                 "compute_index_daily_constituent",
                 configuration.total_number_of_index_constituents,
-                params.start_date,
-                params.end_date,
+                start_date,
+                end_date,
             )
             if status != "SUCCESS":
                 raise RuntimeError(f"Unable to build index: {message}")
@@ -50,6 +51,5 @@ class ComputeService:
             raise RuntimeError(f"{function_name} returned no result")
         return row.status, row.message
 
-def get_compute_service():
-    return ComputeService()
-
+def get_index_construction_service():
+    return IndexConstructionService()
