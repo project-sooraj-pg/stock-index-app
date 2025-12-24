@@ -8,8 +8,8 @@ class Configuration(BaseSettings):
     app_name: str = "stock-index-app"
     debug: bool = False
     # database configuration
-    postgres_db_owner: str = ""
-    postgres_db_owner_password: str = ""
+    postgres_db_user: str = ""
+    postgres_db_password: str = ""
     postgres_db: str = ""
     postgres_db_host: str =""
     postgres_db_port: int = 5432
@@ -22,6 +22,6 @@ class Configuration(BaseSettings):
 
     @property
     def database_url(self) -> str:
-        return f"postgresql+asyncpg://{self.postgres_db_owner}:{self.postgres_db_owner_password}@{self.postgres_db_host}:{self.postgres_db_port}/{self.postgres_db}"
+        return f"postgresql+asyncpg://{self.postgres_db_user}:{self.postgres_db_password}@{self.postgres_db_host}:{self.postgres_db_port}/{self.postgres_db}"
 
 configuration = Configuration()
