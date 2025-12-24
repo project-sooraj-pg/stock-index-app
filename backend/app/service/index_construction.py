@@ -5,6 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.configuration import configuration
 
+from app.core.exception import ApplicationException
+
 
 class IndexConstructionService:
 
@@ -19,7 +21,7 @@ class IndexConstructionService:
                 end_date,
             )
             if status != "SUCCESS":
-                raise RuntimeError(f"Unable to build index: {message}")
+                raise ApplicationException(message)
             # compute index daily performance
             status, message = await self._call_database_function(
                 session,
@@ -27,7 +29,7 @@ class IndexConstructionService:
                 configuration.index_base_value
             )
             if status != "SUCCESS":
-                raise RuntimeError(f"Index computation failed: {message}")
+                raise ApplicationException(f"Index computation failed: {message}", status_code=422)
         return
 
     async def _call_database_function(self, session: AsyncSession, function_name: str, *args) -> tuple[str, str]:
@@ -38,7 +40,7 @@ class IndexConstructionService:
         result = await session.execute(query, params)
         row = result.fetchone()
         if row is None:
-            raise RuntimeError(f"{function_name} returned no result")
+            raise ApplicationException(f"{function_name} returned no result", status_code=422)
         return row.status, row.message
 
 def get_index_construction_service():
