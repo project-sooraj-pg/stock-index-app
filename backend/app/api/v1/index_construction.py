@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.model.param.index_construction import BuildIndexParams
-from backend.app.store.database import get_database
-from backend.app.use_case.index_construction import IndexConstructionUseCase, get_index_construction_use_case
+from app.model.param.index_construction import BuildIndexParams
+from app.store.database import get_database
+from app.use_case.index_construction import IndexConstructionUseCase, get_index_construction_use_case
 
 router = APIRouter()
 

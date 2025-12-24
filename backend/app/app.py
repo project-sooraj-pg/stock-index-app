@@ -1,8 +1,8 @@
 from fastapi import FastAPI, APIRouter
 
-from backend.app.api.v1 import data_export, index_construction, index_retrieval
-from backend.app.core.configuration import configuration
-from backend.app.core.redis import lifespan
+from app.api.v1 import data_export, index_construction, index_retrieval
+from app.core.configuration import configuration
+from app.core.redis import lifespan
 
 api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(index_construction.router, tags=["Index Construction API"])

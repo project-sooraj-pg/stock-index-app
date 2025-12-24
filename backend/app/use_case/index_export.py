@@ -1,8 +1,8 @@
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.service.index_composition import IndexCompositionService, get_index_composition_service
-from backend.app.service.index_performance import IndexPerformanceService, get_index_performance_service
+from app.service.index_composition import IndexCompositionService, get_index_composition_service
+from app.service.index_performance import IndexPerformanceService, get_index_performance_service
 
 
 class IndexExportUseCase:

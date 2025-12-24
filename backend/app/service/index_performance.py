@@ -5,7 +5,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.model.core.index_performance import IndexPerformance
+from app.model.core.index_performance import IndexPerformance
 
 
 class IndexPerformanceService:

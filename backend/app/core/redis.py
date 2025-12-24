@@ -6,12 +6,14 @@ from redis.asyncio import Redis
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
+from app.core.configuration import configuration
+
 redis: Redis  # global Redis client
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global redis
-    redis = Redis(host="localhost", port=6379, db=0)
+    redis = Redis(host=configuration.redis_host, port=configuration.redis_port, db=0)
     try:
         await redis.ping()
         print("Redis connected successfully")

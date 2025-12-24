@@ -1,6 +1,6 @@
 from datetime import date
 
-from backend.app.model.serializable import SerializableBaseModel
+from app.model.serializable import SerializableBaseModel
 
 class IndexPerformance(SerializableBaseModel):
     trade_date: date

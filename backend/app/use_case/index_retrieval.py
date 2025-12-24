@@ -4,15 +4,14 @@ from typing import List
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.core.redis import redis_cache
-from backend.app.model.core.composition_change import CompositionChange
-from backend.app.model.core.index_composition import IndexComposition
-from backend.app.model.core.index_performance import IndexPerformance
-from backend.app.model.dto.composition_change import CompositionChangeDto, CompanyTicker
-from backend.app.model.param.index_retrieval import IndexPerformanceParams, IndexCompositionParams, \
-    CompositionChangesParams
-from backend.app.service.index_composition import IndexCompositionService, get_index_composition_service
-from backend.app.service.index_performance import IndexPerformanceService, get_index_performance_service
+from app.core.redis import redis_cache
+from app.model.core.composition_change import CompositionChange
+from app.model.core.index_composition import IndexComposition
+from app.model.core.index_performance import IndexPerformance
+from app.model.dto.composition_change import CompositionChangeDto, CompanyTicker
+from app.model.param.index_retrieval import IndexPerformanceParams, IndexCompositionParams, CompositionChangesParams
+from app.service.index_composition import IndexCompositionService, get_index_composition_service
+from app.service.index_performance import IndexPerformanceService, get_index_performance_service
 
 
 class IndexRetrievalUseCase:

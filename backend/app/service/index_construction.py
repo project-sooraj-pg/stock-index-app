@@ -3,7 +3,7 @@ from datetime import date
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.core.configuration import configuration
+from app.core.configuration import configuration
 
 
 class IndexConstructionService:

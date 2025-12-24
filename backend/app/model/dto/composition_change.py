@@ -1,7 +1,7 @@
 from datetime import date
 from typing import List
 
-from backend.app.model.serializable import SerializableBaseModel
+from app.model.serializable import SerializableBaseModel
 
 class CompanyTicker(SerializableBaseModel):
     company_name: str

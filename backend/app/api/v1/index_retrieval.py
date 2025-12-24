@@ -3,12 +3,12 @@ from typing import List
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.model.core.index_composition import IndexComposition
-from backend.app.model.core.index_performance import IndexPerformance
-from backend.app.model.dto.composition_change import CompositionChangeDto
-from backend.app.model.param.index_retrieval import IndexPerformanceParams, IndexCompositionParams, CompositionChangesParams
-from backend.app.store.database import get_database
-from backend.app.use_case.index_retrieval import IndexRetrievalUseCase, get_index_retrieval_use_case
+from app.model.core.index_composition import IndexComposition
+from app.model.core.index_performance import IndexPerformance
+from app.model.dto.composition_change import CompositionChangeDto
+from app.model.param.index_retrieval import IndexPerformanceParams, IndexCompositionParams, CompositionChangesParams
+from app.store.database import get_database
+from app.use_case.index_retrieval import IndexRetrievalUseCase, get_index_retrieval_use_case
 
 router = APIRouter()
 

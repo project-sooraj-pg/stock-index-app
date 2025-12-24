@@ -2,7 +2,7 @@ from datetime import date
 
 from pydantic import Field
 
-from backend.app.model.serializable import SerializableBaseModel
+from app.model.serializable import SerializableBaseModel
 
 
 class IndexPerformanceParams(SerializableBaseModel):

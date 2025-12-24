@@ -5,8 +5,8 @@ from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.model.core.index_composition import IndexComposition
-from backend.app.model.core.composition_change import CompositionChange
+from app.model.core.index_composition import IndexComposition
+from app.model.core.composition_change import CompositionChange
 
 
 class IndexCompositionService:

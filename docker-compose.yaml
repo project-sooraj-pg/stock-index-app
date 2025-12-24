@@ -41,11 +41,24 @@ services:
     ports:
       - "6379:6379"
 
-#  backend:
-#    build: ./backend
-#    container_name: backend
-#    ports:
-#      - "8000:8000"
-#    depends_on:
-#      - database
-#      - redis
+  backend:
+    build: ./backend
+    container_name: backend
+    environment:
+      # postgres database variables
+      - POSTGRES_DB_OWNER=${POSTGRES_DB_OWNER}
+      - POSTGRES_DB_OWNER_PASSWORD=${POSTGRES_DB_OWNER_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_DB_HOST=database
+      - POSTGRES_DB_PORT=${POSTGRES_DB_PORT}
+      # redis cache variables
+      - REDIS_HOST=redis
+      - REDIS_PORT=${REDIS_PORT}
+      # index logic variables
+      - INDEX_BASE_VALUE=${INDEX_BASE_VALUE}
+      - TOTAL_NUMBER_OF_INDEX_CONSTITUENTS=${TOTAL_NUMBER_OF_INDEX_CONSTITUENTS}
+    ports:
+      - "8000:8000"
+    depends_on:
+      - database
+      - redis

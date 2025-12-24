@@ -1,8 +1,8 @@
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.model.param.index_construction import BuildIndexParams
-from backend.app.service.index_construction import IndexConstructionService, get_index_construction_service
+from app.model.param.index_construction import BuildIndexParams
+from app.service.index_construction import IndexConstructionService, get_index_construction_service
 
 
 class IndexConstructionUseCase:
