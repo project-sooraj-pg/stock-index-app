@@ -5,6 +5,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exception import ApplicationException
 from app.model.core.index_composition import IndexComposition
 from app.model.core.composition_change import CompositionChange
 
@@ -17,8 +18,9 @@ class IndexCompositionService:
             result = await session.execute(query,{"trade_date": trade_date})
             rows = result.mappings().all()
         except DBAPIError as exception:
-            error_message = str(exception.orig) if exception.orig else str(exception)
-            raise RuntimeError(error_message) from exception
+            orig = exception.orig
+            error_message = orig.args[0] if orig and orig.args else "Database error"
+            raise ApplicationException(error_message, status_code=422) from exception
         results = list()
         for row in rows:
             index_composition = IndexComposition(
@@ -37,8 +39,9 @@ class IndexCompositionService:
             result = await session.execute(query, {"start_date": start_date, "end_date": end_date})
             rows = result.mappings().all()
         except DBAPIError as exception:
-            error_message = str(exception.orig) if exception.orig else str(exception)
-            raise RuntimeError(error_message) from exception
+            orig = exception.orig
+            error_message = orig.args[0] if orig and orig.args else "Database error"
+            raise ApplicationException(error_message, status_code=422) from exception
         results = list()
         for row in rows:
             composition_change = CompositionChange(
