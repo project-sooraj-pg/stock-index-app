@@ -4,7 +4,6 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import StreamingResponse
 
-from backend.app.model.response.success_response import SuccessResponse
 from backend.app.store.database import get_database
 
 from backend.app.use_case.index_export import IndexExportUseCase, get_index_export_use_case

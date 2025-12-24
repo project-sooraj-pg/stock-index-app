@@ -4,6 +4,7 @@ from typing import List
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.app.core.redis import redis_cache
 from backend.app.model.core.composition_change import CompositionChange
 from backend.app.model.core.index_composition import IndexComposition
 from backend.app.model.core.index_performance import IndexPerformance
@@ -19,17 +20,18 @@ class IndexRetrievalUseCase:
         self.index_performance_service = index_performance_service
         self.index_composition_service = index_composition_service
 
+    @redis_cache(ttl=60)
     async def get_index_performance(self, session: AsyncSession, params: IndexPerformanceParams) ->List[IndexPerformance]:
         start_date = params.start_date
         end_date = params.end_date
-        # index_performances = await self.index_performance_service.get_index_performance(session=session, start_date=start_date, end_date=end_date)
-        # index_performances_dto = IndexPerformancesDto(results=index_performances)
         return await self.index_performance_service.get_index_performance(session=session, start_date=start_date, end_date=end_date)
 
+    @redis_cache(ttl=60)
     async def get_index_composition(self, session: AsyncSession, params: IndexCompositionParams) -> List[IndexComposition]:
         trade_date = params.trade_date
         return await self.index_composition_service.get_index_composition(session=session, trade_date=trade_date)
 
+    @redis_cache(ttl=60)
     async def get_composition_changes(self, session: AsyncSession, params: CompositionChangesParams) -> List[CompositionChangeDto]:
         start_date = params.start_date
         end_date = params.end_date

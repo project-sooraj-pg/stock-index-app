@@ -11,7 +11,3 @@ class CompositionChangeDto(SerializableBaseModel):
     change_date: date
     added: List[CompanyTicker]
     removed: List[CompanyTicker]
-
-class CompositionChangesDto(SerializableBaseModel):
-    status: str = "SUCCESS"
-    results: List[CompositionChangeDto]

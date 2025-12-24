@@ -9,6 +9,8 @@ class Configuration(BaseSettings):
     postgres_db_owner: str = ""
     postgres_db_owner_password: str = ""
     postgres_db: str = ""
+    redis_host: str = ""
+    redis_port: int = ""
     index_base_value: float = 1000.0
     total_number_of_index_constituents: int = 100
 
