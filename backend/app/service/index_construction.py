@@ -4,12 +4,11 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.core.configuration import configuration
-from backend.app.model.param.index_retrieval import IndexPerformanceParams, IndexCompositionParams, CompositionChangesParams
 
 
 class IndexConstructionService:
 
-    async def build_index(self, session: AsyncSession, start_date: date = None, end_date: date = None) -> str:
+    async def build_index(self, session: AsyncSession, start_date: date = None, end_date: date = None) -> None:
         async with session.begin():
             # compute index daily constituents
             status, message = await self._call_database_function(
@@ -29,16 +28,7 @@ class IndexConstructionService:
             )
             if status != "SUCCESS":
                 raise RuntimeError(f"Index computation failed: {message}")
-        return f"Index created. number of values generated: {message}"
-
-    async def get_index_performance(self, params: IndexPerformanceParams):
-        pass
-
-    async def get_index_composition(self, params: IndexCompositionParams):
-        pass
-
-    async def get_composition_changes(self, params: CompositionChangesParams):
-        pass
+        return
 
     async def _call_database_function(self, session: AsyncSession, function_name: str, *args) -> tuple[str, str]:
         """Method to execute stored procedure"""

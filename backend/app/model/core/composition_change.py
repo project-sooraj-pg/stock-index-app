@@ -1,8 +1,8 @@
 from datetime import date
 
-from pydantic import BaseModel
+from backend.app.model.serializable import SerializableBaseModel
 
-class CompositionChange(BaseModel):
+class CompositionChange(SerializableBaseModel):
     change_date: date
     company_name: str
     ticker_symbol: str

@@ -1,15 +1,18 @@
 from datetime import date
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 
-class IndexPerformanceParams(BaseModel):
+from backend.app.model.serializable import SerializableBaseModel
+
+
+class IndexPerformanceParams(SerializableBaseModel):
     start_date: date = Field(..., description="YYYY-MM-DD")
     end_date: date = Field(..., description="YYYY-MM-DD")
 
-class IndexCompositionParams(BaseModel):
+class IndexCompositionParams(SerializableBaseModel):
     trade_date: date = Field(..., description="YYYY-MM-DD")
 
-class CompositionChangesParams(BaseModel):
+class CompositionChangesParams(SerializableBaseModel):
     start_date: date = Field(..., description="YYYY-MM-DD")
     end_date: date = Field(..., description="YYYY-MM-DD")
 

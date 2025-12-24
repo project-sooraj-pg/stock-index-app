@@ -1,9 +1,9 @@
 from datetime import date
 
-from pydantic import BaseModel
+from backend.app.model.serializable import SerializableBaseModel
 
-class IndexComposition(BaseModel):
-    change_date: date
+class IndexComposition(SerializableBaseModel):
+    trade_date: date
     company_name: str
     ticker_symbol: str
     market_cap_rank: int

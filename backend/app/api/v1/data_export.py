@@ -1,21 +1,24 @@
 from io import BytesIO
 
 from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import StreamingResponse
 
 from backend.app.model.response.success_response import SuccessResponse
+from backend.app.store.database import get_database
 
 from backend.app.use_case.index_export import IndexExportUseCase, get_index_export_use_case
 from backend.app.util.excel_exporter import ExcelExporter, get_excel_exporter
 
 router = APIRouter()
 
-@router.post("/export-data", response_model=SuccessResponse[str])
+@router.post("/export-data")
 async def export_data(
-        use_case: IndexExportUseCase = Depends(get_index_export_use_case),
-        exporter: ExcelExporter = Depends(get_excel_exporter)):
+        index_export_use_case: IndexExportUseCase = Depends(get_index_export_use_case),
+        exporter: ExcelExporter = Depends(get_excel_exporter),
+        session: AsyncSession = Depends(get_database)):
 
-    dataset = await use_case.build_export_dataset()
+    dataset = await index_export_use_case.build_export_dataset(session=session)
     output = BytesIO()
     await exporter.export(dataset=dataset, output=output)
     output.seek(0)

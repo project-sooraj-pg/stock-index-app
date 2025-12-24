@@ -1,8 +1,9 @@
-from typing import Generic, TypeVar, Optional
-from pydantic import BaseModel
+from typing import TypeVar, List, Generic
+
+from pydantic.generics import GenericModel
 
 T = TypeVar("T")
 
-class SuccessResponse(BaseModel, Generic[T]):
+class SuccessResponse(GenericModel, Generic[T]):
     status: str = "SUCCESS"
-    result: T
+    results: List[T]

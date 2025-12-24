@@ -1,14 +1,17 @@
 from datetime import date
 from typing import List
 
-from pydantic import BaseModel
+from backend.app.model.serializable import SerializableBaseModel
 
-
-class CompanyTicker(BaseModel):
+class CompanyTicker(SerializableBaseModel):
     company_name: str
     ticker_symbol: str
 
-class CompositionChange(BaseModel):
+class CompositionChangeDto(SerializableBaseModel):
     change_date: date
     added: List[CompanyTicker]
     removed: List[CompanyTicker]
+
+class CompositionChangesDto(SerializableBaseModel):
+    status: str = "SUCCESS"
+    results: List[CompositionChangeDto]

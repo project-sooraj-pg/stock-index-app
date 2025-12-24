@@ -1,8 +1,8 @@
 from datetime import date
 
-from pydantic import BaseModel
+from backend.app.model.serializable import SerializableBaseModel
 
-class IndexPerformance(BaseModel):
+class IndexPerformance(SerializableBaseModel):
     trade_date: date
     index_value: float
     daily_return_in_percentage: float
