@@ -15,16 +15,10 @@ AS $BODY$
 DECLARE
     v_min_date DATE;
     v_max_date DATE;
+    v_start_date DATE;
+    v_end_date DATE;
 BEGIN
-    -- 1. Sanity check
-    IF p_start_date > p_end_date THEN
-        RAISE EXCEPTION
-            'Invalid date range: start_date (%) is after end_date (%)',
-            p_start_date, p_end_date
-            USING ERRCODE = '22023';
-    END IF;
-
-    -- 2. Available data range
+    -- 1. Available data range
     SELECT
         MIN(idp.trade_date),
         MAX(idp.trade_date)
@@ -39,16 +33,28 @@ BEGIN
             USING ERRCODE = 'P0001';
     END IF;
 
-    -- 3. Strict boundary enforcement
-    IF p_start_date < v_min_date OR p_end_date > v_max_date THEN
+    -- 2. Use min/max if input is null
+    v_start_date := COALESCE(p_start_date, v_min_date);
+    v_end_date := COALESCE(p_end_date, v_max_date);
+
+    -- 3. Sanity check
+    IF v_start_date > v_end_date THEN
+        RAISE EXCEPTION
+            'Invalid date range: start_date (%) is after end_date (%)',
+            v_start_date, v_end_date
+            USING ERRCODE = '22023';
+    END IF;
+
+    -- 4. Strict boundary enforcement
+    IF v_start_date < v_min_date OR v_end_date > v_max_date THEN
         RAISE EXCEPTION
             'Requested range (%)–(%) is outside available data range (%)–(%)',
-            p_start_date, p_end_date,
+            v_start_date, v_end_date,
             v_min_date, v_max_date
             USING ERRCODE = '22023';
     END IF;
 
-    -- 4. Return performance data
+    -- 5. Return performance data
     RETURN QUERY
     WITH ordered_data AS (
         SELECT
@@ -57,7 +63,7 @@ BEGIN
             LAG(idp.index_value) OVER (ORDER BY idp.trade_date) AS prev_index_value,
             FIRST_VALUE(idp.index_value) OVER (ORDER BY idp.trade_date) AS base_index_value
         FROM index_daily_performance idp
-        WHERE idp.trade_date BETWEEN p_start_date AND p_end_date
+        WHERE idp.trade_date BETWEEN v_start_date AND v_end_date
     )
     SELECT
         od.trade_date,
