@@ -7,7 +7,7 @@ import aiohttp
 import certifi
 import requests
 
-from feeder.utility.Logger import Logger
+from utility.Logger import Logger
 
 class Web:
 

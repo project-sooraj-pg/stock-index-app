@@ -1,12 +1,12 @@
 from typing import List, Optional
 
-from feeder.repository.Tickers import Tickers
-from feeder.repository.DailyTickerSummary import DailyTickerSummary
-from feeder.utility.Commons import Commons
+from repository.Tickers import Tickers
+from repository.DailyTickerSummary import DailyTickerSummary
+from utility.Commons import Commons
 
-from feeder.utility.Logger import Logger
-from feeder.utility.DuckDB import DuckDB
-from feeder.utility.Configuration import Configuration
+from utility.Logger import Logger
+from utility.DuckDB import DuckDB
+from utility.Configuration import Configuration
 
 class Gather:
 

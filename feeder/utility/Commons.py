@@ -2,10 +2,12 @@ import os
 from typing import List
 from datetime import datetime, timedelta
 
-from feeder.utility.Logger import Logger
+from dotenv import load_dotenv
+
+from utility.Logger import Logger
 
 class Commons:
-
+    load_dotenv()
     __logger = Logger.get_logger()
     __apiKey = os.environ.get('API_KEY')
 

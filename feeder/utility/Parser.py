@@ -1,7 +1,7 @@
 import argparse
 from argparse import Namespace
 
-from feeder.utility.Logger import Logger
+from utility.Logger import Logger
 
 
 class Parser:

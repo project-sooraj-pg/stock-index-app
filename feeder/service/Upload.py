@@ -1,19 +1,21 @@
 import os
 from typing import List
 
-from feeder.utility.Configuration import Configuration
-from feeder.utility.DuckDB import DuckDB
-from feeder.utility.Logger import Logger
+from dotenv import load_dotenv
+
+from utility.Configuration import Configuration
+from utility.DuckDB import DuckDB
+from utility.Logger import Logger
 
 
 class Upload:
-
+    load_dotenv()
     __logger = Logger.get_logger()
     __configuration = Configuration.load_from_file()
 
     __database = os.environ.get("POSTGRES_DB")
-    __user = os.environ.get("POSTGRES_DB_OWNER")
-    __password = os.environ.get("POSTGRES_DB_OWNER_PASSWORD")
+    __user = os.environ.get("POSTGRES_USER")
+    __password = os.environ.get("POSTGRES_DB_PASSWORD")
     __host = os.environ.get("POSTGRES_DB_HOST")
     __port = os.environ.get("POSTGRES_DB_PORT")
 
