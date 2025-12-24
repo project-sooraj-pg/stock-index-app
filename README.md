@@ -57,35 +57,32 @@ poetry run feeder --fetch_from_origin=false
 
 ## Useful Curl Commands
 
-### 1. Export index data as Excel file
+### 1. Build index with given parameters
 ```bash
-curl -X POST \
-  http://localhost:8000/api/v1/export-data \
-  -H "Content-Type: application/json" \
-  -d '{"index_code": "SP100", "start_date": "2025-01-01", "end_date": "2025-12-01"}'
+curl -X POST "http://localhost:8000/api/v1/build_index/?start_date=2025-08-04&end_date=2025-09-26"
 ```
 
-### 2. Build index with given parameters
+### 2. Get index performance data (list)
 ```bash
-curl -X POST \
-  http://localhost:8000/api/v1/build_index \
-  -H "Content-Type: application/json" \
-  -d '{"start_date": "2025-01-01", "end_date": "2025-12-01"}'
+curl -X 'GET' \
+  'http://localhost:8000/api/v1/index-performance?start_date=2025-08-04&end_date=2025-09-25' \
+  -H 'accept: application/json' \
+  -w "%{http_code}\n"
 ```
 
-### 3. Get index performance data (list)
+### 3. Get index composition data (list)
 ```bash
-curl -X GET "http://localhost:8000/api/v1/index-performance?index_code=SP100&start_date=2025-01-01&end_date=2025-12-01" -H "accept: application/json"
+curl -X 'GET' \
+  'http://localhost:8000/api/v1/index-composition?trade_date=2025-08-18' \
+  -H 'accept: application/json' \
+  -w "%{http_code}\n"
 ```
 
-### 4. Get index composition data (list)
+### 4. Get index composition changes (list)
 ```bash
-curl -X GET "http://localhost:8000/api/v1/index-composition?index_code=SP100&trade_date=2025-12-01" -H "accept: application/json"
-```
-
-### 5. Get index composition changes (list)
-```bash
-curl -X GET "http://localhost:8000/api/v1/composition-changes?index_code=SP100&start_date=2025-01-01&end_date=2025-12-01" -H "accept: application/json"
+curl -X 'GET' \
+  'http://localhost:8000/api/v1/composition-changes?start_date=2025-08-04&end_date=2025-09-12' \
+  -H 'accept: application/json' \ 
 ```
 
 ## Tech Stacks Used
