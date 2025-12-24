@@ -43,20 +43,20 @@ python Feeder.py --fetch_from_origin=false
 
 The following environment variables must be set (typically in your `.env` file):
 
-| Variable                      | Description                          |
-|-------------------------------|--------------------------------------|
-| `POSTGRES_DB_OWNER`           | Postgres database owner username     |
-| `POSTGRES_DB_OWNER_PASSWORD`  | Postgres database owner password     |
-| `POSTGRES_DB`                 | Postgres database name               |
-| `POSTGRES_DB_HOST`            | Postgres database host               |
-| `POSTGRES_DB_PORT`            | Postgres database port               |
-| `API_KEY`                     | API key for massive.io (polygon.io)  |
+| Variable               | Description                          |
+|------------------------|--------------------------------------|
+| `POSTGRES_DB_USER`     | Postgres database owner username     |
+| `POSTGRES_DB_PASSWORD` | Postgres database owner password     |
+| `POSTGRES_DB`          | Postgres database name               |
+| `POSTGRES_DB_HOST`     | Postgres database host               |
+| `POSTGRES_DB_PORT`     | Postgres database port               |
+| `API_KEY`              | API key for massive.io (polygon.io)  |
 
 Example `.env` file:
 
 ```
-POSTGRES_DB_OWNER=your_username
-POSTGRES_DB_OWNER_PASSWORD=your_password
+POSTGRES_DB_USER=your_username
+POSTGRES_DB_PASSWORD=your_password
 POSTGRES_DB=your_db_name
 POSTGRES_DB_HOST=localhost
 POSTGRES_DB_PORT=5432
